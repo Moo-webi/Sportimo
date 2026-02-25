@@ -30,34 +30,52 @@ public class AuthService {
     @Transactional
     public void register(RegisterRequest request) {
 
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
-        User user = User.builder()
-                .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .isActive(true)
-                .build();
+        // 1️⃣ Create User (authentication part)
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
 
         userRepository.save(user);
 
+        // 2️⃣ Create role-specific profile
         if (request.getRole() == Role.ATHLETE) {
 
-            Athlete athlete = Athlete.builder()
-                    .user(user)
-                    .build();
+            validateAthleteData(request);
+
+            Athlete athlete = new Athlete();
+            athlete.setUser(user);
+            athlete.setFirstName(request.getFirstName());
+            athlete.setLastName(request.getLastName());
+            athlete.setBirthDate(request.getBirthDate());
+            athlete.setHeight(request.getHeight());
+            athlete.setWeight(request.getWeight());
 
             athleteRepository.save(athlete);
+        }
 
-        } else if (request.getRole() == Role.CENTER) {
+        else if (request.getRole() == Role.CENTER) {
 
-            SportsCenter center = SportsCenter.builder()
-                    .user(user)
-                    .build();
+            validateSportsCenterData(request);
+
+            SportsCenter center = new SportsCenter();
+            center.setUser(user);
+            center.setName(request.getName());
+            center.setDescription(request.getDescription());
+            center.setPhone(request.getPhone());
+            center.setAddress(request.getAddress());
+            center.setLatitude(request.getLatitude());
+            center.setLongitude(request.getLongitude());
 
             sportsCenterRepository.save(center);
+        }
+
+        else {
+            throw new RuntimeException("Invalid role");
         }
     }
 
@@ -76,5 +94,18 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return jwtService.generateToken(user);
+    }
+
+    private void validateAthleteData(RegisterRequest request) {
+        if (request.getFirstName() == null || request.getLastName() == null) {
+            throw new RuntimeException("Athlete name is required");
+        }
+    }
+
+
+    private void validateSportsCenterData(RegisterRequest request) {
+        if (request.getName() == null || request.getAddress() == null) {
+            throw new RuntimeException("Sports center data incomplete");
+        }
     }
 }

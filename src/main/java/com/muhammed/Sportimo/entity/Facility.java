@@ -26,6 +26,7 @@ public class Facility {
     @JoinColumn(name = "sport_id", nullable = false)
     private Sport sport;
 
+    @Getter
     private String name;
     private String description;
     private Double pricePerHour;
