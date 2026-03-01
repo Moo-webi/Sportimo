@@ -37,11 +37,9 @@ public class AuthService {
         // 1️⃣ Create User (authentication part)
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));        user.setRole(request.getRole());
 
-        userRepository.save(user);
-
+        user = userRepository.saveAndFlush(user);
         // 2️⃣ Create role-specific profile
         if (request.getRole() == Role.ATHLETE) {
 

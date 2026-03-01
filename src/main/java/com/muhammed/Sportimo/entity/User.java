@@ -87,7 +87,5 @@ public class User implements UserDetails {
         return isActive;
     }
 
-    public void setPassword(@Nullable String encode) {
 
-    }
 }

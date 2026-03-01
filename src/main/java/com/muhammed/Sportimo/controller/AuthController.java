@@ -11,6 +11,7 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173") // Allow react
 @RequiredArgsConstructor
 public class AuthController {
 
