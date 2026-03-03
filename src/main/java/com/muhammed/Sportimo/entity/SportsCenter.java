@@ -1,5 +1,7 @@
 package com.muhammed.Sportimo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,5 +34,6 @@ public class SportsCenter {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "sportsCenter")
+    @JsonIgnoreProperties({"facilities"})
     private List<Facility> facilities;
 }

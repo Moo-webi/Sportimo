@@ -1,5 +1,6 @@
 package com.muhammed.Sportimo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "password_hash", nullable = false)
+    @JsonIgnore
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
@@ -47,6 +49,7 @@ public class User implements UserDetails {
     private Athlete athlete;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private SportsCenter sportsCenter;
 
     // --- UserDetails Implementation Methods ---

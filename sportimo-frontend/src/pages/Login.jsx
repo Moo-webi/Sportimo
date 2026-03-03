@@ -19,7 +19,7 @@ const Login = () => {
 
         try {
             // Your AuthService.java returns the JWT as a plain string or inside an object
-            const response = await api.post('/login', credentials);
+            const response = await api.post('/auth/login', credentials);
 
             // Extract the token (adjust if your backend wraps it in a JSON object like { token: "..." })
             const token = typeof response.data === 'string' ? response.data : response.data.token;

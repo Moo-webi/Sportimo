@@ -26,7 +26,7 @@ const Register = () => {
         e.preventDefault();
         try {
             // Sends RegisterRequest DTO to your AuthService
-            await api.post('/register', { ...formData, role });
+            await api.post('/auth/register', { ...formData, role });
             alert("Registration successful! Please login.");
         } catch (err) {
             alert(err.response?.data?.message || "Registration failed");

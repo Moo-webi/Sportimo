@@ -1,5 +1,6 @@
 package com.muhammed.Sportimo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class Facility {
     private Long id;
 
     @ManyToOne
+    @JsonIgnore // Prevents fetching all bookings when getting facilities
     @JoinColumn(name = "sports_center_id", nullable = false)
     private SportsCenter sportsCenter;
 
@@ -35,6 +37,7 @@ public class Facility {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "facility")
+    @JsonIgnore // Prevents fetching all bookings when getting facilities
     private List<FacilityAvailability> availability;
 
     @OneToMany(mappedBy = "facility")

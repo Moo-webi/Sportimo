@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -43,5 +45,9 @@ public class FacilityService {
         facility.setSport(sport);
 
         return facilityRepository.save(facility);
+    }
+
+    public List<Facility> getAllFacilities() {
+        return facilityRepository.findAll();
     }
 }
