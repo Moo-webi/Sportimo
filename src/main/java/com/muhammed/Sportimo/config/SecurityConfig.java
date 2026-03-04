@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -25,6 +26,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable).cors(org.springframework.security.config.Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Public login/register
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/facilities").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/sports/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/available-slots").permitAll()
                         .anyRequest().authenticated()               // Everything else locked
                 )
                 // 1. Tell Spring NOT to create a session (Stateless)

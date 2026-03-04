@@ -41,5 +41,6 @@ public class Facility {
     private List<FacilityAvailability> availability;
 
     @OneToMany(mappedBy = "facility")
+    @JsonIgnore // Prevent recursive serialization through bookings -> facility
     private List<Booking> bookings;
 }

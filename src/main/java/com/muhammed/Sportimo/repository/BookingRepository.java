@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -22,4 +23,26 @@ AND (:start < b.endTime AND :end > b.startTime)
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    long countByStatusInAndStartTimeAfter(List<com.muhammed.Sportimo.entity.BookingStatus> statuses, LocalDateTime startTime);
+
+    List<Booking> findTop3ByStatusInAndStartTimeAfterOrderByStartTimeAsc(
+            List<com.muhammed.Sportimo.entity.BookingStatus> statuses,
+            LocalDateTime startTime
+    );
+
+    long countByFacilityId(Long facilityId);
+
+    List<Booking> findByFacilityIdAndStatusInAndStartTimeLessThanAndEndTimeGreaterThanOrderByStartTimeAsc(
+            Long facilityId,
+            List<com.muhammed.Sportimo.entity.BookingStatus> statuses,
+            LocalDateTime dayEnd,
+            LocalDateTime dayStart
+    );
+
+    List<Booking> findByAthleteIdOrderByStartTimeDesc(Long athleteId);
+
+    List<Booking> findByFacilitySportsCenterIdOrderByStartTimeDesc(Long sportsCenterId);
+
+    Optional<Booking> findByIdAndFacilitySportsCenterId(Long id, Long sportsCenterId);
 }
