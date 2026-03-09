@@ -10,6 +10,10 @@ const AthleteDashboard = () => {
     const [error, setError] = useState("");
     const [authUser, setAuthUser] = useState(null);
     const [profile, setProfile] = useState(null);
+    const [reviewBooking, setReviewBooking] = useState(null);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
     useEffect(() => {
         const loadDashboard = async () => {
@@ -42,6 +46,50 @@ const AthleteDashboard = () => {
     const handleLogout = () => {
         clearAuth();
         navigate("/login");
+    };
+
+    const handleCancelBooking = async (bookingId) => {
+        const confirmed = window.confirm("Cancel this pending booking?");
+        if (!confirmed) return;
+        try {
+            await api.put(`/bookings/${bookingId}/cancel`);
+            const meRes = await api.get("/athletes/me");
+            setProfile(meRes.data);
+        } catch (err) {
+            alert(extractApiError(err, "Failed to cancel booking."));
+        }
+    };
+
+    const openReviewModal = (booking) => {
+        setReviewBooking(booking);
+        setReviewRating(5);
+        setReviewComment("");
+    };
+
+    const closeReviewModal = () => {
+        setReviewBooking(null);
+        setReviewRating(5);
+        setReviewComment("");
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        if (!reviewBooking) return;
+
+        setReviewSubmitting(true);
+        try {
+            await api.post(`/bookings/${reviewBooking.id}/review`, {
+                rating: Number(reviewRating),
+                comment: reviewComment?.trim() || null,
+            });
+            const meRes = await api.get("/athletes/me");
+            setProfile(meRes.data);
+            closeReviewModal();
+        } catch (err) {
+            alert(extractApiError(err, "Failed to submit review."));
+        } finally {
+            setReviewSubmitting(false);
+        }
     };
 
     return (
@@ -136,9 +184,20 @@ const AthleteDashboard = () => {
                                                 <div>
                                                     <p className="text-base font-extrabold text-slate-900">{booking.facilityName || "Facility"}</p>
                                                     <p className="mt-1 text-sm text-slate-600">{booking.sportName || "Sport"}</p>
+                                                    <p className="mt-1 text-sm font-semibold text-emerald-700">
+                                                        {booking.bookingType === "OPEN_MATCH" ? "Open match" : "Closed booking"}
+                                                        {booking.bookingType === "OPEN_MATCH"
+                                                            ? ` • Players ${booking.participants?.length || 0}/${(booking.openSlots || 0) + 1} • Available ${booking.availableSlots ?? 0}`
+                                                            : ""}
+                                                    </p>
                                                     <p className="mt-1 text-sm text-slate-700">
                                                         {formatDateTime(booking.startTime)} - {formatDateTime(booking.endTime)}
                                                     </p>
+                                                    {booking.bookingType === "OPEN_MATCH" && booking.participants?.length > 0 && (
+                                                        <p className="mt-1 text-sm text-slate-700">
+                                                            Athletes: {booking.participants.map((p) => p.name || p.email || "Athlete").join(", ")}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="rounded-full border border-green-200 bg-white px-3 py-1 text-xs font-bold text-emerald-700">
@@ -147,8 +206,30 @@ const AthleteDashboard = () => {
                                                     <span className="text-sm font-bold text-emerald-700">
                                                         ${booking.pricePerHour}/hour
                                                     </span>
+                                                    {booking.owner && booking.status === "PENDING" && (
+                                                        <button
+                                                            onClick={() => handleCancelBooking(booking.id)}
+                                                            className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                    {booking.canReview && !booking.reviewed && (
+                                                        <button
+                                                            onClick={() => openReviewModal(booking)}
+                                                            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                                                        >
+                                                            Review
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
+                                            {booking.reviewed && (
+                                                <p className="mt-2 text-sm font-semibold text-slate-700">
+                                                    Your review: {booking.reviewRating}/5
+                                                    {booking.reviewComment ? ` - ${booking.reviewComment}` : ""}
+                                                </p>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -159,6 +240,62 @@ const AthleteDashboard = () => {
                     </>
                 )}
             </div>
+
+            {reviewBooking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
+                    <div className="w-full max-w-md rounded-3xl border border-green-100 bg-white p-6 shadow-xl">
+                        <h3 className="text-xl font-extrabold tracking-tight text-slate-900">
+                            Review {reviewBooking.facilityName || "Facility"}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-600">Share your experience after this booking.</p>
+
+                        <form onSubmit={handleSubmitReview} className="mt-4 space-y-4">
+                            <div>
+                                <label className="mb-1 block text-sm font-semibold text-slate-700">Rating</label>
+                                <select
+                                    value={reviewRating}
+                                    onChange={(e) => setReviewRating(e.target.value)}
+                                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                                >
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Very good</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="1">1 - Poor</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-sm font-semibold text-slate-700">Comment (optional)</label>
+                                <textarea
+                                    value={reviewComment}
+                                    onChange={(e) => setReviewComment(e.target.value)}
+                                    rows={3}
+                                    placeholder="How was the facility and your experience?"
+                                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={closeReviewModal}
+                                    className="w-full rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-green-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={reviewSubmitting}
+                                    className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm ${
+                                        reviewSubmitting ? "bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+                                    }`}
+                                >
+                                    {reviewSubmitting ? "Submitting..." : "Submit Review"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

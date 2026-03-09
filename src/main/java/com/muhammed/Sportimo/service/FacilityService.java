@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,9 +39,13 @@ public class FacilityService {
         Facility facility = new Facility();
         facility.setName(request.getName());
         facility.setDescription(request.getDescription());
+        List<String> normalizedImageUrls = normalizeImageUrls(request.getImageUrls(), request.getImageUrl());
+        facility.setImageUrls(normalizedImageUrls);
+        facility.setImageUrl(normalizedImageUrls.isEmpty() ? null : normalizedImageUrls.get(0));
         facility.setPricePerHour(request.getPricePerHour());
         facility.setSportsCenter(center);
         facility.setSport(sport);
+        facility.setSportsCenterName(facility.getSportsCenterName());
 
         return facilityRepository.save(facility);
     }
@@ -62,6 +67,9 @@ public class FacilityService {
 
         facility.setName(request.getName());
         facility.setDescription(request.getDescription());
+        List<String> normalizedImageUrls = normalizeImageUrls(request.getImageUrls(), request.getImageUrl());
+        facility.setImageUrls(normalizedImageUrls);
+        facility.setImageUrl(normalizedImageUrls.isEmpty() ? null : normalizedImageUrls.get(0));
         facility.setPricePerHour(request.getPricePerHour());
         facility.setSport(sport);
 
@@ -161,5 +169,23 @@ public class FacilityService {
                 availability.getStartTime(),
                 availability.getEndTime()
         );
+    }
+
+    private List<String> normalizeImageUrls(List<String> imageUrls, String fallbackImageUrl) {
+        List<String> normalized = new ArrayList<>();
+        if (imageUrls != null) {
+            for (String imageUrl : imageUrls) {
+                if (imageUrl == null) continue;
+                String trimmed = imageUrl.trim();
+                if (!trimmed.isEmpty() && !normalized.contains(trimmed)) {
+                    normalized.add(trimmed);
+                }
+            }
+        }
+
+        if (normalized.isEmpty() && fallbackImageUrl != null && !fallbackImageUrl.trim().isEmpty()) {
+            normalized.add(fallbackImageUrl.trim());
+        }
+        return normalized;
     }
 }

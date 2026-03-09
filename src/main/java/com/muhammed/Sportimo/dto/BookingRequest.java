@@ -1,5 +1,6 @@
 package com.muhammed.Sportimo.dto;
 
+import com.muhammed.Sportimo.entity.BookingType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,4 +14,8 @@ public class BookingRequest {
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
+
+    private BookingType bookingType;
+
+    private Integer openSlots;
 }

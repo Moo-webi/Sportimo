@@ -38,8 +38,11 @@ public class LandingService {
                         f.getId(),
                         f.getName(),
                         f.getDescription(),
+                        f.getImageUrl(),
+                        f.getImageUrls(),
                         f.getSport() != null ? f.getSport().getName() : null,
-                        f.getPricePerHour()
+                        f.getPricePerHour(),
+                        f.getSportsCenterName()
                 ))
                 .toList();
 

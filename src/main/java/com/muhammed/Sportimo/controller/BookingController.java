@@ -3,6 +3,9 @@ package com.muhammed.Sportimo.controller;
 import com.muhammed.Sportimo.dto.AvailableSlotDto;
 import com.muhammed.Sportimo.dto.BookingRequest;
 import com.muhammed.Sportimo.dto.CenterBookingDto;
+import com.muhammed.Sportimo.dto.FacilityReviewRequest;
+import com.muhammed.Sportimo.dto.FacilityReviewResponse;
+import com.muhammed.Sportimo.dto.OpenMatchDto;
 import com.muhammed.Sportimo.entity.Booking;
 import com.muhammed.Sportimo.service.BookingService;
 import lombok.RequiredArgsConstructor;
@@ -58,5 +61,36 @@ public class BookingController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(bookingService.confirmCenterBooking(bookingId, authentication.getName()));
+    }
+
+    @PostMapping("/{bookingId}/review")
+    public ResponseEntity<FacilityReviewResponse> submitReview(
+            @PathVariable Long bookingId,
+            @RequestBody FacilityReviewRequest request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookingService.submitFacilityReview(bookingId, request, authentication.getName()));
+    }
+
+    @GetMapping("/open-matches")
+    public ResponseEntity<List<OpenMatchDto>> getOpenMatches(Authentication authentication) {
+        return ResponseEntity.ok(bookingService.getOpenMatches(authentication.getName()));
+    }
+
+    @PostMapping("/{bookingId}/join")
+    public ResponseEntity<OpenMatchDto> joinOpenMatch(
+            @PathVariable Long bookingId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookingService.joinOpenMatch(bookingId, authentication.getName()));
+    }
+
+    @PutMapping("/{bookingId}/cancel")
+    public ResponseEntity<Void> cancelAthleteBooking(
+            @PathVariable Long bookingId,
+            Authentication authentication
+    ) {
+        bookingService.cancelAthleteBooking(bookingId, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 }

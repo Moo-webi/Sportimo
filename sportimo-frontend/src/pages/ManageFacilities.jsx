@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import { Link } from "react-router-dom";
 import brandIcon from "../assets/icon.png";
@@ -6,14 +6,14 @@ import { clearAuth, getAuthUser } from "../utils/auth";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-const emptyFacility = { name: "", description: "", pricePerHour: "", sportId: "" };
+const emptyFacility = { name: "", description: "", imageUrlsText: "", pricePerHour: "", sportId: "" };
 const emptyAvailability = { dayOfWeek: "MON", startTime: "", endTime: "" };
 
 const ManageFacilities = () => {
     const [sports, setSports] = useState([]);
     const [myFacilities, setMyFacilities] = useState([]);
     const [centerBookings, setCenterBookings] = useState([]);
-    const [authUser, setAuthUser] = useState(null);
+    const [authUser, setAuthUser] = useState(() => getAuthUser());
     const [newSportName, setNewSportName] = useState("");
     const [createFacilityData, setCreateFacilityData] = useState(emptyFacility);
     const [editingFacilityId, setEditingFacilityId] = useState(null);
@@ -23,15 +23,6 @@ const ManageFacilities = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [availabilityData, setAvailabilityData] = useState(emptyAvailability);
     const [editingAvailabilityId, setEditingAvailabilityId] = useState(null);
-
-    useEffect(() => {
-        loadPageData();
-        setAuthUser(getAuthUser());
-    }, []);
-
-    const loadPageData = async () => {
-        await Promise.all([loadSports(), loadMyFacilities(), loadCenterBookings()]);
-    };
 
     const loadSports = async () => {
         const res = await api.get("/sports");
@@ -47,6 +38,20 @@ const ManageFacilities = () => {
         const res = await api.get("/bookings/center");
         setCenterBookings(res.data || []);
     };
+
+    useEffect(() => {
+        const bootstrap = async () => {
+            const [sportsRes, facilitiesRes, bookingsRes] = await Promise.all([
+                api.get("/sports"),
+                api.get("/facilities/mine"),
+                api.get("/bookings/center"),
+            ]);
+            setSports(sportsRes.data || []);
+            setMyFacilities(facilitiesRes.data || []);
+            setCenterBookings(bookingsRes.data || []);
+        };
+        bootstrap();
+    }, []);
 
     const loadAvailability = async (facilityId) => {
         const res = await api.get(`/facilities/${facilityId}/availability`);
@@ -71,6 +76,7 @@ const ManageFacilities = () => {
         await api.post("/facilities", {
             name: createFacilityData.name,
             description: createFacilityData.description,
+            imageUrls: parseImageUrls(createFacilityData.imageUrlsText),
             pricePerHour: Number(createFacilityData.pricePerHour),
             sportId: Number(createFacilityData.sportId),
         });
@@ -83,6 +89,12 @@ const ManageFacilities = () => {
         setEditFacilityData({
             name: facility.name || "",
             description: facility.description || "",
+            imageUrlsText: (facility.imageUrls && facility.imageUrls.length > 0
+                ? facility.imageUrls
+                : facility.imageUrl
+                    ? [facility.imageUrl]
+                    : []
+            ).join("\n"),
             pricePerHour: facility.pricePerHour ?? "",
             sportId: facility.sport?.id ? String(facility.sport.id) : "",
         });
@@ -97,6 +109,7 @@ const ManageFacilities = () => {
         await api.put(`/facilities/${facilityId}`, {
             name: editFacilityData.name,
             description: editFacilityData.description,
+            imageUrls: parseImageUrls(editFacilityData.imageUrlsText),
             pricePerHour: Number(editFacilityData.pricePerHour),
             sportId: Number(editFacilityData.sportId),
         });
@@ -206,7 +219,7 @@ const ManageFacilities = () => {
                     <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
                     <div className="leading-tight">
                         <div className="text-lg font-extrabold tracking-tight text-slate-900">Sportimo</div>
-                        <div className="-mt-1 text-xs text-slate-500">Book • Play • Track</div>
+                        <div className="-mt-1 text-xs text-slate-500">Book,  Play and  Track</div>
                     </div>
                 </Link>
                 <div className="flex items-center gap-2">
@@ -266,6 +279,14 @@ const ManageFacilities = () => {
                             onChange={(e) => setCreateFacilityData({ ...createFacilityData, pricePerHour: e.target.value })}
                             className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                             required
+                        />
+                        <textarea
+                            name="imageUrls"
+                            placeholder={"Image URLs (one per line)\nhttps://.../pic1.jpg\nhttps://.../pic2.jpg"}
+                            value={createFacilityData.imageUrlsText}
+                            onChange={(e) => setCreateFacilityData({ ...createFacilityData, imageUrlsText: e.target.value })}
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                            rows={3}
                         />
                         <select
                             value={createFacilityData.sportId}
@@ -328,6 +349,18 @@ const ManageFacilities = () => {
                                                 }
                                                 className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                                             />
+                                            <textarea
+                                                placeholder={"Image URLs (one per line)\nhttps://.../pic1.jpg\nhttps://.../pic2.jpg"}
+                                                value={editFacilityData.imageUrlsText}
+                                                onChange={(e) =>
+                                                    setEditFacilityData({
+                                                        ...editFacilityData,
+                                                        imageUrlsText: e.target.value,
+                                                    })
+                                                }
+                                                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                                                rows={3}
+                                            />
                                             <select
                                                 value={editFacilityData.sportId}
                                                 onChange={(e) =>
@@ -371,12 +404,23 @@ const ManageFacilities = () => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                            <div>
-                                                <p className="text-lg font-extrabold text-slate-900">{facility.name}</p>
-                                                <p className="mt-1 text-sm text-slate-600">{facility.description}</p>
-                                                <p className="mt-1 text-sm font-semibold text-emerald-700">
-                                                    {facility.sport?.name || "Sport"} • ${facility.pricePerHour}/hour
-                                                </p>
+                                            <div className="flex gap-4">
+                                                {getFacilityImages(facility).length > 0 ? (
+                                                    <img
+                                                        src={getFacilityImages(facility)[0]}
+                                                        alt={facility.name}
+                                                        className="h-20 w-28 rounded-xl object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="h-20 w-28 rounded-xl bg-green-50" />
+                                                )}
+                                                <div>
+                                                    <p className="text-lg font-extrabold text-slate-900">{facility.name}</p>
+                                                    <p className="mt-1 text-sm text-slate-600">{facility.description}</p>
+                                                    <p className="mt-1 text-sm font-semibold text-emerald-700">
+                                                        {facility.sport?.name || "Sport"} • ${facility.pricePerHour}/hour
+                                                    </p>
+                                                </div>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 <button
@@ -417,7 +461,7 @@ const ManageFacilities = () => {
                                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                         <div>
                                             <p className="text-base font-extrabold text-slate-900">
-                                                {booking.facilityName || "Facility"} • {booking.sportName || "Sport"}
+                                                {booking.facilityName || "Facility"}  {booking.sportName || "Sport"}
                                             </p>
                                             <p className="mt-1 text-sm text-slate-700">
                                                 Athlete: {booking.athleteName || "Athlete"} ({booking.athleteEmail || "No email"})
@@ -518,7 +562,7 @@ const ManageFacilities = () => {
                                             className="flex flex-wrap items-center justify-between rounded-xl border border-green-100 bg-green-50 px-4 py-3"
                                         >
                                             <p className="text-sm font-semibold text-slate-800">
-                                                {slot.dayOfWeek} • {slot.startTime?.slice(0, 5)} - {slot.endTime?.slice(0, 5)}
+                                                {slot.dayOfWeek}  {slot.startTime?.slice(0, 5)} - {slot.endTime?.slice(0, 5)}
                                             </p>
                                             <div className="flex gap-2">
                                                 <button
@@ -548,6 +592,22 @@ const ManageFacilities = () => {
 
 export default ManageFacilities;
 
+const parseImageUrls = (value) => {
+    if (!value) return [];
+    return value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line, index, arr) => line.length > 0 && arr.indexOf(line) === index);
+};
+
+const getFacilityImages = (facility) => {
+    if (Array.isArray(facility?.imageUrls) && facility.imageUrls.length > 0) {
+        return facility.imageUrls;
+    }
+    if (facility?.imageUrl) return [facility.imageUrl];
+    return [];
+};
+
 const formatDateTime = (value) => {
     if (!value) return "-";
     const date = new Date(value);
@@ -559,3 +619,5 @@ const formatDateTime = (value) => {
         minute: "2-digit",
     });
 };
+
+

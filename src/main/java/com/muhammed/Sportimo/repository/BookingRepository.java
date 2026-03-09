@@ -1,6 +1,7 @@
 package com.muhammed.Sportimo.repository;
 
 import com.muhammed.Sportimo.entity.Booking;
+import com.muhammed.Sportimo.entity.BookingType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,7 +43,34 @@ AND (:start < b.endTime AND :end > b.startTime)
 
     List<Booking> findByAthleteIdOrderByStartTimeDesc(Long athleteId);
 
+    @Query("""
+SELECT DISTINCT b FROM Booking b
+LEFT JOIN b.joinedAthletes ja
+WHERE b.athlete.id = :athleteId OR ja.id = :athleteId
+ORDER BY b.startTime DESC
+""")
+    List<Booking> findAthleteRelatedBookingsOrderByStartTimeDesc(@Param("athleteId") Long athleteId);
+
     List<Booking> findByFacilitySportsCenterIdOrderByStartTimeDesc(Long sportsCenterId);
 
     Optional<Booking> findByIdAndFacilitySportsCenterId(Long id, Long sportsCenterId);
+
+    List<Booking> findByBookingTypeAndStatusInAndStartTimeAfterOrderByStartTimeAsc(
+            BookingType bookingType,
+            List<com.muhammed.Sportimo.entity.BookingStatus> statuses,
+            LocalDateTime startTime
+    );
+
+    @Query("""
+SELECT DISTINCT b FROM Booking b
+LEFT JOIN b.joinedAthletes ja
+WHERE b.status IN ('PENDING', 'CONFIRMED')
+AND (:start < b.endTime AND :end > b.startTime)
+AND (b.athlete.id = :athleteId OR ja.id = :athleteId)
+""")
+    List<Booking> findAthleteConflictingBookings(
+            @Param("athleteId") Long athleteId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

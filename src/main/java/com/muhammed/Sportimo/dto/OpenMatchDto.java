@@ -1,7 +1,5 @@
 package com.muhammed.Sportimo.dto;
 
-import com.muhammed.Sportimo.entity.BookingStatus;
-import com.muhammed.Sportimo.entity.BookingType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,22 +8,18 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class AthleteBookingDto {
-    private Long id;
+public class OpenMatchDto {
+    private Long bookingId;
     private Long facilityId;
     private String facilityName;
     private String sportName;
+    private String sportsCenterName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private BookingStatus status;
-    private BookingType bookingType;
     private Integer openSlots;
     private Integer availableSlots;
-    private Boolean owner;
+    private Integer totalPlayers;
+    private Integer currentPlayers;
+    private boolean joinedByCurrentAthlete;
     private List<MatchParticipantDto> participants;
-    private Double pricePerHour;
-    private Boolean canReview;
-    private Boolean reviewed;
-    private Integer reviewRating;
-    private String reviewComment;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import brandIcon from "../assets/icon.png";
 import brandLogo from "../assets/logo (2).png";
 import { clearAuth, getAuthUser } from "../utils/auth";
@@ -13,7 +13,7 @@ import api from "../api/axios";
  */
 export default function SportimoLanding() {
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [authUser, setAuthUser] = useState(null);
+    const [authUser, setAuthUser] = useState(() => getAuthUser());
     const [landingData, setLandingData] = useState(null);
 
     const navLinks = useMemo(
@@ -28,8 +28,6 @@ export default function SportimoLanding() {
     );
 
     useEffect(() => {
-        setAuthUser(getAuthUser());
-
         const fetchLandingData = async () => {
             try {
                 const res = await api.get("/public/landing");
@@ -72,7 +70,7 @@ export default function SportimoLanding() {
                                 Sportimo
                             </div>
                             <div className="text-xs text-slate-500 -mt-1">
-                                Book • Play • Track
+                                Book, Play and Track
                             </div>
                         </div>
                     </a>
@@ -207,7 +205,7 @@ export default function SportimoLanding() {
                         </h1>
 
                         <p className="mt-4 text-lg text-slate-600">
-                            Sportimo connects athletes and sports centers—discover nearby
+                            Sportimo connects athletes and sports centersâ€”discover nearby
                             facilities, reserve time slots, and build a sports community.
                         </p>
 
@@ -289,7 +287,9 @@ export default function SportimoLanding() {
                                         <FacilityCard
                                             key={facility.id}
                                             title={facility.name}
-                                            subtitle={`${facility.sportName || "Sport"} • ${facility.description || "Facility"}`}
+                                            imageUrl={facility.imageUrl}
+                                            imageUrls={facility.imageUrls}
+                                            subtitle={`${facility.sportName || "Sport"}  ${facility.description || "Facility"}`}
                                             price={`$${facility.pricePerHour} / hour`}
                                             tags={["Available"]}
                                         />
@@ -335,7 +335,7 @@ export default function SportimoLanding() {
             <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
                 <div className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
                     <div className="text-center text-sm font-semibold text-slate-600">
-                        Built for athletes and sports centers — starting in Porto, scalable everywhere.
+                        Built for athletes and sports centers, starting in Porto, scalable everywhere.
                     </div>
                     <div className="mt-5 grid grid-cols-2 gap-3 opacity-80 md:grid-cols-4">
                         {dynamicSports.slice(0, 4).map((sport) => (
@@ -371,7 +371,7 @@ export default function SportimoLanding() {
                     />
                     <Feature
                         title="Conflict-free booking"
-                        desc="Availability stays consistent, so overlapping bookings don’t happen."
+                        desc="Availability stays consistent, so overlapping bookings donâ€™t happen."
                     />
                     <Feature
                         title="Matches & community"
@@ -383,7 +383,7 @@ export default function SportimoLanding() {
                     />
                     <Feature
                         title="Ratings & reviews"
-                        desc="See what players think before you book—help centers improve."
+                        desc="See what players think before you book and help centers improve."
                     />
                     <Feature
                         title="Center dashboard"
@@ -411,7 +411,7 @@ export default function SportimoLanding() {
                         <Step
                             n="2"
                             title="Book"
-                            desc="Pick a time slot, confirm your reservation, and you’re set."
+                            desc="Pick a time slot, confirm your reservation, and you're set."
                         />
                         <Step
                             n="3"
@@ -472,20 +472,20 @@ export default function SportimoLanding() {
                             <PanelRow label="Facilities" value="3 active" />
                             <PanelRow label="Today bookings" value="7" />
                             <PanelRow label="Next slot" value="18:30" />
-                            <PanelRow label="Avg rating" value="4.6★" />
+                            <PanelRow label="Avg rating" value="4.6" />
                         </div>
 
-                        <div className="mt-6 rounded-2xl bg-white p-4">
-                            <div className="text-xs font-semibold text-slate-600">
-                                Tip
-                            </div>
-                            <div className="mt-1 text-sm font-bold text-slate-900">
-                                Add photos + clear pricing to boost conversions
-                            </div>
-                            <p className="mt-2 text-sm text-slate-600">
-                                Clear listings help athletes trust the booking flow and come back.
-                            </p>
-                        </div>
+                        {/*<div className="mt-6 rounded-2xl bg-white p-4">*/}
+                        {/*    /!*<div className="text-xs font-semibold text-slate-600">*!/*/}
+                        {/*    /!*    Tip*!/*/}
+                        {/*    /!*</div>*!/*/}
+                        {/*    /!*<div className="mt-1 text-sm font-bold text-slate-900">*!/*/}
+                        {/*    /!*    Add photos + clear pricing to boost conversions*!/*/}
+                        {/*    /!*</div>*!/*/}
+                        {/*    <p className="mt-2 text-sm text-slate-600">*/}
+                        {/*        Clear listings help athletes trust the booking flow and come back.*/}
+                        {/*    </p>*/}
+                        {/*</div>*/}
                     </div>
                 </div>
             </section>
@@ -515,8 +515,8 @@ export default function SportimoLanding() {
                             dynamicMatches.map((match) => (
                                 <MatchCard
                                     key={match.id}
-                                    title={`${match.sportName || "Sport"} • Upcoming`}
-                                    meta={`${match.facilityName || "Facility"} • ${formatMatchTime(match.startTime)}`}
+                                    title={`${match.sportName || "Sport"}  Upcoming`}
+                                    meta={`${match.facilityName || "Facility"}  ${formatMatchTime(match.startTime)}`}
                                     seats="Open booking"
                                 />
                             ))
@@ -535,7 +535,7 @@ export default function SportimoLanding() {
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                     <Faq
                         q="Is Sportimo only for padel/tennis?"
-                        a="No — Sportimo is multi-sport (football, futsal, padel, tennis, basketball, and more)."
+                        a="No , Sportimo is multi-sport (football, futsal, padel, tennis, basketball, and more)."
                     />
                     <Faq
                         q="Do I need an account to view facilities?"
@@ -575,7 +575,7 @@ export default function SportimoLanding() {
                                 href="/register?role=center"
                                 className="rounded-xl border border-white/30 px-5 py-2.5 text-center text-sm font-extrabold text-white hover:bg-white/10"
                             >
-                                I’m a sports center
+                                Iâ€™m a sports center
                             </a>
                         </div>
                     </div>
@@ -591,7 +591,7 @@ export default function SportimoLanding() {
                                 <img src={brandLogo} alt="Sportimo logo" className="h-8 w-auto" />
                             </div>
                             <p className="mt-3 max-w-sm text-sm text-slate-600">
-                                Book facilities, create matches, and track performance — all in one platform.
+                                Book facilities, create matches, and track performance all in one platform.
                             </p>
                             <p className="mt-3 text-xs text-slate-500">
                                 © {new Date().getFullYear()} Sportimo. All rights reserved.
@@ -645,9 +645,19 @@ function Badge({ text }) {
     );
 }
 
-function FacilityCard({ title, subtitle, price, tags }) {
+function FacilityCard({ title, subtitle, price, tags, imageUrl, imageUrls }) {
+    const coverImage = Array.isArray(imageUrls) && imageUrls.length > 0 ? imageUrls[0] : imageUrl;
     return (
         <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm hover:border-emerald-200">
+            <div className="mb-3 overflow-hidden rounded-xl bg-green-50">
+                {coverImage ? (
+                    <img src={coverImage} alt={title} className="h-28 w-full object-cover" />
+                ) : (
+                    <div className="flex h-28 items-center justify-center text-xs font-semibold text-slate-500">
+                        No image
+                    </div>
+                )}
+            </div>
             <div className="flex items-start justify-between gap-3">
                 <div>
                     <div className="text-sm font-extrabold text-slate-900">{title}</div>
@@ -785,3 +795,5 @@ function Check() {
     </span>
     );
 }
+
+
