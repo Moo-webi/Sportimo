@@ -1,0 +1,721 @@
+{
+  "info": {
+    "_postman_id": "9e21e13c-3cd2-4a3e-9a4e-2bce4ad53970",
+    "name": "Sportimo APIs",
+    "description": "Auto-generated API test cases for all Sportimo backend endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('run_id')) {",
+          "  const runId = String(Date.now());",
+          "  pm.collectionVariables.set('run_id', runId);",
+          "  pm.collectionVariables.set('center_email', `center_${runId}@sportimo.test`);",
+          "  pm.collectionVariables.set('athlete_email', `athlete_${runId}@sportimo.test`);",
+          "}",
+          "if (!pm.collectionVariables.get('center_password')) { pm.collectionVariables.set('center_password', 'CenterPass123!'); }",
+          "if (!pm.collectionVariables.get('athlete_password')) { pm.collectionVariables.set('athlete_password', 'AthletePass123!'); }",
+          "",
+          "const now = new Date();",
+          "const dow = now.getDay();",
+          "let daysUntilMonday = (1 - dow + 7) % 7;",
+          "if (daysUntilMonday === 0) daysUntilMonday = 7;",
+          "const nextMonday = new Date(now.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000);",
+          "",
+          "const yyyy = nextMonday.getFullYear();",
+          "const mm = String(nextMonday.getMonth() + 1).padStart(2, '0');",
+          "const dd = String(nextMonday.getDate()).padStart(2, '0');",
+          "const dateStr = `${yyyy}-${mm}-${dd}`;",
+          "",
+          "pm.collectionVariables.set('available_slots_date', dateStr);",
+          "pm.collectionVariables.set('booking_start', `${dateStr}T09:00:00`);",
+          "pm.collectionVariables.set('booking_end', `${dateStr}T10:00:00`);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "run_id", "value": "" },
+    { "key": "center_email", "value": "" },
+    { "key": "center_password", "value": "CenterPass123!" },
+    { "key": "athlete_email", "value": "" },
+    { "key": "athlete_password", "value": "AthletePass123!" },
+    { "key": "center_token", "value": "" },
+    { "key": "athlete_token", "value": "" },
+    { "key": "sport_id", "value": "" },
+    { "key": "facility_id", "value": "" },
+    { "key": "temp_facility_id", "value": "" },
+    { "key": "availability_id", "value": "" },
+    { "key": "booking_id", "value": "" },
+    { "key": "available_slots_date", "value": "" },
+    { "key": "booking_start", "value": "" },
+    { "key": "booking_end", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Auth APIs",
+      "item": [
+        {
+          "name": "POST /api/auth/register (CENTER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{center_email}}\",\n  \"password\": \"{{center_password}}\",\n  \"role\": \"CENTER\",\n  \"name\": \"Center {{run_id}}\",\n  \"description\": \"Main sports center\",\n  \"phone\": \"+1555000111\",\n  \"address\": \"123 Main St\",\n  \"latitude\": 30.0444,\n  \"longitude\": 31.2357\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Register message returned', function () {",
+                  "  pm.expect(pm.response.text()).to.include('User registered successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/register (ATHLETE)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{athlete_email}}\",\n  \"password\": \"{{athlete_password}}\",\n  \"role\": \"ATHLETE\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"Athlete\",\n  \"birthDate\": \"2000-01-01\",\n  \"height\": 180,\n  \"weight\": 75\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Register message returned', function () {",
+                  "  pm.expect(pm.response.text()).to.include('User registered successfully');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/login (CENTER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{center_email}}\",\n  \"password\": \"{{center_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const token = pm.response.text().replace(/\"/g, '').trim();",
+                  "pm.collectionVariables.set('center_token', token);",
+                  "pm.test('Center token captured', function () { pm.expect(token.length).to.be.greaterThan(20); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/login (ATHLETE)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{athlete_email}}\",\n  \"password\": \"{{athlete_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const token = pm.response.text().replace(/\"/g, '').trim();",
+                  "pm.collectionVariables.set('athlete_token', token);",
+                  "pm.test('Athlete token captured', function () { pm.expect(token.length).to.be.greaterThan(20); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/auth/profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/auth/profile"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Profile greeting is returned', function () {",
+                  "  pm.expect(pm.response.text()).to.include('Hello,');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Public APIs",
+      "item": [
+        {
+          "name": "GET /api/public/landing",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/public/landing"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Landing response shape', function () {",
+                  "  pm.expect(json).to.have.property('spotlightSports');",
+                  "  pm.expect(json).to.have.property('featuredFacilities');",
+                  "  pm.expect(json).to.have.property('upcomingMatches');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Sports APIs",
+      "item": [
+        {
+          "name": "GET /api/sports",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sports"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Sports list is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/sports",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/sports",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sport {{run_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('sport_id', json.id);",
+                  "pm.test('Sport created with id', function () {",
+                  "  pm.expect(json.id).to.exist;",
+                  "  pm.expect(json.name).to.include('Sport');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Facility APIs",
+      "item": [
+        {
+          "name": "GET /api/facilities",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/facilities"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Facility list is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/facilities/mine",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/facilities/mine"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Mine list is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/facilities",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Court {{run_id}}\",\n  \"description\": \"Indoor football court\",\n  \"pricePerHour\": 50,\n  \"sportId\": {{sport_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('facility_id', json.id);",
+                  "pm.test('Facility id stored', function () { pm.expect(json.id).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/facilities/{facilityId}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Court {{run_id}} Updated\",\n  \"description\": \"Updated description\",\n  \"pricePerHour\": 65,\n  \"sportId\": {{sport_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Facility updated', function () {",
+                  "  pm.expect(pm.response.json().name).to.include('Updated');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/facilities/{facilityId}/availability",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}/availability"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Availability list is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/facilities/{facilityId}/availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayOfWeek\": \"MON\",\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"22:00:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('availability_id', json.id);",
+                  "pm.test('Availability id stored', function () { pm.expect(json.id).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/facilities/{facilityId}/availability/{availabilityId}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}/availability/{{availability_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayOfWeek\": \"MON\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"23:00:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Availability updated', function () {",
+                  "  pm.expect(pm.response.json().startTime).to.equal('09:00:00');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/facilities (temp for delete)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Temp Court {{run_id}}\",\n  \"description\": \"To test delete\",\n  \"pricePerHour\": 35,\n  \"sportId\": {{sport_id}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('temp_facility_id', json.id);",
+                  "pm.test('Temp facility id stored', function () { pm.expect(json.id).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/facilities/{facilityId} (temp)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/facilities/{{temp_facility_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/facilities/{facilityId}/availability/{availabilityId}",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}/availability/{{availability_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Booking APIs",
+      "item": [
+        {
+          "name": "POST /api/facilities/{facilityId}/availability (recreate for slots)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{center_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/facilities/{{facility_id}}/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dayOfWeek\": \"MON\",\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"22:00:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/bookings/available-slots",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/available-slots?facilityId={{facility_id}}&date={{available_slots_date}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "available-slots"],
+              "query": [
+                { "key": "facilityId", "value": "{{facility_id}}" },
+                { "key": "date", "value": "{{available_slots_date}}" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Available slots is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/bookings",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{athlete_token}}" }
+            ],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facilityId\": {{facility_id}},\n  \"startTime\": \"{{booking_start}}\",\n  \"endTime\": \"{{booking_end}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('booking_id', json.id);",
+                  "pm.test('Booking id stored', function () { pm.expect(json.id).to.exist; });",
+                  "pm.test('Booking is pending', function () { pm.expect(json.status).to.equal('PENDING'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/bookings/center",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/bookings/center"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Center bookings is array', function () {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/bookings/{bookingId}/confirm",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{center_token}}" }],
+            "url": "{{baseUrl}}/api/bookings/{{booking_id}}/confirm"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Booking confirmed', function () {",
+                  "  pm.expect(pm.response.json().status).to.equal('CONFIRMED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Athlete APIs",
+      "item": [
+        {
+          "name": "GET /api/athletes/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{athlete_token}}" }],
+            "url": "{{baseUrl}}/api/athletes/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Athlete profile shape', function () {",
+                  "  pm.expect(json).to.have.property('athleteId');",
+                  "  pm.expect(json).to.have.property('email');",
+                  "  pm.expect(json).to.have.property('bookings');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Security Negative Case",
+      "item": [
+        {
+          "name": "GET /api/athletes/me (no token)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/athletes/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 or 403', function () {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
