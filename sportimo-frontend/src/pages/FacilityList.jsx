@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import FacilityCard from '../components/FacilityCard';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import brandIcon from '../assets/icon.png';
 import { clearAuth, getAuthUser } from '../utils/auth';
 
 const FacilityList = () => {
+    const navigate = useNavigate();
     const [facilities, setFacilities] = useState([]);
     const [sports, setSports] = useState([]);
     const [selectedSportId, setSelectedSportId] = useState('');
@@ -99,6 +100,11 @@ const FacilityList = () => {
         }
     };
 
+    const handleMessageCenter = (facility) => {
+        if (!facility?.sportsCenterId) return;
+        navigate(`/messages?recipientType=CENTER&recipientId=${facility.sportsCenterId}`);
+    };
+
     const loadAvailableSlots = async (facilityId, dateValue) => {
         if (!facilityId || !dateValue) return;
         setSlotsLoading(true);
@@ -156,8 +162,12 @@ const FacilityList = () => {
         const facilityName = (facility.name || "").toLowerCase();
         const sportName = (facility.sport?.name || "").toLowerCase();
         const centerName = (facility.sportsCenterName || facility.sportsCenter?.name || "").toLowerCase();
+        const address = (facility.address || "").toLowerCase();
 
-        return facilityName.includes(query) || sportName.includes(query) || centerName.includes(query);
+        return facilityName.includes(query)
+            || sportName.includes(query)
+            || centerName.includes(query)
+            || address.includes(query);
     });
 
     const centerNameById = facilities.reduce((acc, facility) => {
@@ -322,6 +332,7 @@ const FacilityList = () => {
                                 isCenter={authUser?.role === "CENTER"}
                                 isAthlete={authUser?.role === "ATHLETE"}
                                 onBook={openBookingModal}
+                                onMessageCenter={handleMessageCenter}
                             />
                         ))}
                     </div>

@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Entity
@@ -36,4 +38,16 @@ public class SportsCenter {
     @OneToMany(mappedBy = "sportsCenter")
     @JsonIgnoreProperties({"facilities"})
     private List<Facility> facilities;
+
+    @Transient
+    public String getGoogleMapsUrl() {
+        if (latitude != null && longitude != null) {
+            return "https://www.google.com/maps?q=" + latitude + "," + longitude;
+        }
+        if (address != null && !address.isBlank()) {
+            return "https://www.google.com/maps/search/?api=1&query="
+                    + URLEncoder.encode(address, StandardCharsets.UTF_8);
+        }
+        return null;
+    }
 }

@@ -1,18 +1,29 @@
 ﻿import React, { useEffect, useState } from "react";
 import api from "../api/axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import brandIcon from "../assets/icon.png";
-import { clearAuth, getAuthUser } from "../utils/auth";
+import { clearAuth, getAuthUser, setStoredUserName } from "../utils/auth";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-const emptyFacility = { name: "", description: "", imageUrlsText: "", pricePerHour: "", sportId: "" };
+const emptyFacility = {
+    name: "",
+    description: "",
+    imageUrlsText: "",
+    pricePerHour: "",
+    sportId: "",
+    address: "",
+    latitude: "",
+    longitude: "",
+};
 const emptyAvailability = { dayOfWeek: "MON", startTime: "", endTime: "" };
 
 const ManageFacilities = () => {
+    const navigate = useNavigate();
     const [sports, setSports] = useState([]);
     const [myFacilities, setMyFacilities] = useState([]);
     const [centerBookings, setCenterBookings] = useState([]);
+    const [centerProfile, setCenterProfile] = useState(null);
     const [authUser, setAuthUser] = useState(() => getAuthUser());
     const [newSportName, setNewSportName] = useState("");
     const [createFacilityData, setCreateFacilityData] = useState(emptyFacility);
@@ -23,6 +34,15 @@ const ManageFacilities = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [availabilityData, setAvailabilityData] = useState(emptyAvailability);
     const [editingAvailabilityId, setEditingAvailabilityId] = useState(null);
+    const [centerForm, setCenterForm] = useState({
+        name: "",
+        description: "",
+        phone: "",
+        address: "",
+        latitude: "",
+        longitude: "",
+    });
+    const [centerSaving, setCenterSaving] = useState(false);
 
     const loadSports = async () => {
         const res = await api.get("/sports");
@@ -41,14 +61,18 @@ const ManageFacilities = () => {
 
     useEffect(() => {
         const bootstrap = async () => {
-            const [sportsRes, facilitiesRes, bookingsRes] = await Promise.all([
+            const [sportsRes, facilitiesRes, bookingsRes, centerRes] = await Promise.all([
                 api.get("/sports"),
                 api.get("/facilities/mine"),
                 api.get("/bookings/center"),
+                api.get("/centers/me"),
             ]);
             setSports(sportsRes.data || []);
             setMyFacilities(facilitiesRes.data || []);
             setCenterBookings(bookingsRes.data || []);
+            setCenterProfile(centerRes.data || null);
+            setCenterForm(buildCenterForm(centerRes.data || null));
+            setCreateFacilityData(buildFacilityDraft(centerRes.data || null));
         };
         bootstrap();
     }, []);
@@ -79,8 +103,11 @@ const ManageFacilities = () => {
             imageUrls: parseImageUrls(createFacilityData.imageUrlsText),
             pricePerHour: Number(createFacilityData.pricePerHour),
             sportId: Number(createFacilityData.sportId),
+            address: createFacilityData.address,
+            latitude: toOptionalNumber(createFacilityData.latitude),
+            longitude: toOptionalNumber(createFacilityData.longitude),
         });
-        setCreateFacilityData(emptyFacility);
+        setCreateFacilityData(buildFacilityDraft(centerProfile));
         await loadMyFacilities();
     };
 
@@ -97,6 +124,9 @@ const ManageFacilities = () => {
             ).join("\n"),
             pricePerHour: facility.pricePerHour ?? "",
             sportId: facility.sport?.id ? String(facility.sport.id) : "",
+            address: facility.address || centerProfile?.address || "",
+            latitude: formatOptionalNumber(facility.latitude ?? centerProfile?.latitude),
+            longitude: formatOptionalNumber(facility.longitude ?? centerProfile?.longitude),
         });
     };
 
@@ -112,6 +142,9 @@ const ManageFacilities = () => {
             imageUrls: parseImageUrls(editFacilityData.imageUrlsText),
             pricePerHour: Number(editFacilityData.pricePerHour),
             sportId: Number(editFacilityData.sportId),
+            address: editFacilityData.address,
+            latitude: toOptionalNumber(editFacilityData.latitude),
+            longitude: toOptionalNumber(editFacilityData.longitude),
         });
         cancelEditFacility();
         await loadMyFacilities();
@@ -212,6 +245,35 @@ const ManageFacilities = () => {
         }
     };
 
+    const handleSaveCenterProfile = async (e) => {
+        e.preventDefault();
+        setCenterSaving(true);
+        try {
+            const response = await api.put("/centers/me", {
+                name: centerForm.name,
+                description: centerForm.description,
+                phone: centerForm.phone,
+                address: centerForm.address,
+                latitude: toOptionalNumber(centerForm.latitude),
+                longitude: toOptionalNumber(centerForm.longitude),
+            });
+            setCenterProfile(response.data);
+            setCenterForm(buildCenterForm(response.data));
+            setStoredUserName(response.data?.name || "Sports Center");
+            setAuthUser(getAuthUser());
+            alert("Sports center information updated.");
+        } catch (error) {
+            alert(error.response?.data?.message || "Failed to update sports center information.");
+        } finally {
+            setCenterSaving(false);
+        }
+    };
+
+    const handleMessageAthlete = (athleteId) => {
+        if (!athleteId) return;
+        navigate(`/messages?recipientType=ATHLETE&recipientId=${athleteId}`);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
             <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
@@ -234,6 +296,12 @@ const ManageFacilities = () => {
                     >
                         View Facilities
                     </Link>
+                    <Link
+                        to="/messages"
+                        className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
+                    >
+                        Messages
+                    </Link>
                     <button
                         onClick={handleLogout}
                         className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
@@ -244,6 +312,76 @@ const ManageFacilities = () => {
             </div>
 
             <div className="mx-auto max-w-6xl space-y-8 px-4 pb-10 pt-4">
+                <section className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
+                    <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Sports Center Information</h2>
+                    <form onSubmit={handleSaveCenterProfile} className="mt-4 grid gap-4 md:grid-cols-2">
+                        <input
+                            value={centerForm.name}
+                            onChange={(e) => setCenterForm({ ...centerForm, name: e.target.value })}
+                            placeholder="Sports center name"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                            required
+                        />
+                        <input
+                            value={centerForm.phone}
+                            onChange={(e) => setCenterForm({ ...centerForm, phone: e.target.value })}
+                            placeholder="Phone number"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                        />
+                        <textarea
+                            value={centerForm.description}
+                            onChange={(e) => setCenterForm({ ...centerForm, description: e.target.value })}
+                            placeholder="Description"
+                            rows={3}
+                            className="md:col-span-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                        />
+                        <input
+                            value={centerForm.address}
+                            onChange={(e) => setCenterForm({ ...centerForm, address: e.target.value })}
+                            placeholder="Address"
+                            className="md:col-span-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                            required
+                        />
+                        <input
+                            type="number"
+                            step="any"
+                            value={centerForm.latitude}
+                            onChange={(e) => setCenterForm({ ...centerForm, latitude: e.target.value })}
+                            placeholder="Latitude"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                        />
+                        <input
+                            type="number"
+                            step="any"
+                            value={centerForm.longitude}
+                            onChange={(e) => setCenterForm({ ...centerForm, longitude: e.target.value })}
+                            placeholder="Longitude"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                        />
+                        <div className="md:col-span-2 flex items-center gap-3">
+                            <button
+                                type="submit"
+                                disabled={centerSaving}
+                                className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm ${
+                                    centerSaving ? "bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+                                }`}
+                            >
+                                {centerSaving ? "Saving..." : "Save Information"}
+                            </button>
+                            {centerProfile?.googleMapsUrl && (
+                                <a
+                                    href={centerProfile.googleMapsUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-sm font-semibold text-emerald-700 hover:underline"
+                                >
+                                    Open current location in Google Maps
+                                </a>
+                            )}
+                        </div>
+                    </form>
+                </section>
+
                 <section className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
                     <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Add New Sport Category</h2>
                     <form onSubmit={handleAddSport} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -262,6 +400,21 @@ const ManageFacilities = () => {
 
                 <section className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
                     <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Create New Facility</h2>
+                    {centerProfile?.address && (
+                        <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 p-4 text-sm text-slate-700">
+                            Default location: <span className="font-semibold">{centerProfile.address}</span>
+                            {centerProfile.googleMapsUrl && (
+                                <a
+                                    href={centerProfile.googleMapsUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="ml-2 font-semibold text-emerald-700 hover:underline"
+                                >
+                                    Open in Google Maps
+                                </a>
+                            )}
+                        </div>
+                    )}
                     <form onSubmit={handleCreateFacility} className="mt-4 grid gap-4 md:grid-cols-2">
                         <input
                             name="name"
@@ -313,6 +466,46 @@ const ManageFacilities = () => {
                                 rows={3}
                                 required
                             />
+                        </div>
+                        <div className="md:col-span-2 grid gap-4 md:grid-cols-3">
+                            <input
+                                name="address"
+                                placeholder="Facility address"
+                                value={createFacilityData.address}
+                                onChange={(e) => setCreateFacilityData({ ...createFacilityData, address: e.target.value })}
+                                className="md:col-span-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                                required
+                            />
+                            <input
+                                name="latitude"
+                                type="number"
+                                step="any"
+                                placeholder="Latitude"
+                                value={createFacilityData.latitude}
+                                onChange={(e) => setCreateFacilityData({ ...createFacilityData, latitude: e.target.value })}
+                                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                            />
+                            <input
+                                name="longitude"
+                                type="number"
+                                step="any"
+                                placeholder="Longitude"
+                                value={createFacilityData.longitude}
+                                onChange={(e) => setCreateFacilityData({ ...createFacilityData, longitude: e.target.value })}
+                                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setCreateFacilityData((current) => ({
+                                    ...current,
+                                    address: centerProfile?.address || "",
+                                    latitude: formatOptionalNumber(centerProfile?.latitude),
+                                    longitude: formatOptionalNumber(centerProfile?.longitude),
+                                }))}
+                                className="rounded-xl border border-green-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-green-50"
+                            >
+                                Use center location
+                            </button>
                         </div>
                         <button className="md:col-span-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-emerald-700">
                             Create Facility
@@ -387,6 +580,57 @@ const ManageFacilities = () => {
                                                 rows={2}
                                                 className="md:col-span-2 w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                                             />
+                                            <input
+                                                value={editFacilityData.address}
+                                                onChange={(e) =>
+                                                    setEditFacilityData({
+                                                        ...editFacilityData,
+                                                        address: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Facility address"
+                                                className="md:col-span-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                                            />
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                value={editFacilityData.latitude}
+                                                onChange={(e) =>
+                                                    setEditFacilityData({
+                                                        ...editFacilityData,
+                                                        latitude: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Latitude"
+                                                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                                            />
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                value={editFacilityData.longitude}
+                                                onChange={(e) =>
+                                                    setEditFacilityData({
+                                                        ...editFacilityData,
+                                                        longitude: e.target.value,
+                                                    })
+                                                }
+                                                placeholder="Longitude"
+                                                className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditFacilityData({
+                                                        ...editFacilityData,
+                                                        address: centerProfile?.address || "",
+                                                        latitude: formatOptionalNumber(centerProfile?.latitude),
+                                                        longitude: formatOptionalNumber(centerProfile?.longitude),
+                                                    })
+                                                }
+                                                className="rounded-xl border border-green-200 px-4 py-2 text-sm font-semibold text-slate-700"
+                                            >
+                                                Use center location
+                                            </button>
                                             <div className="md:col-span-2 flex gap-2">
                                                 <button
                                                     onClick={() => handleUpdateFacility(facility.id)}
@@ -420,6 +664,19 @@ const ManageFacilities = () => {
                                                     <p className="mt-1 text-sm font-semibold text-emerald-700">
                                                         {facility.sport?.name || "Sport"} • ${facility.pricePerHour}/hour
                                                     </p>
+                                                    <p className="mt-1 text-sm text-slate-700">
+                                                        {facility.address || "No address"}
+                                                    </p>
+                                                    {facility.googleMapsUrl && (
+                                                        <a
+                                                            href={facility.googleMapsUrl}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="mt-1 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+                                                        >
+                                                            Open in Google Maps
+                                                        </a>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
@@ -480,6 +737,14 @@ const ManageFacilities = () => {
                                                     className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
                                                 >
                                                     Confirm
+                                                </button>
+                                            )}
+                                            {booking.athleteId && (
+                                                <button
+                                                    onClick={() => handleMessageAthlete(booking.athleteId)}
+                                                    className="rounded-xl border border-green-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-green-50"
+                                                >
+                                                    Message Athlete
                                                 </button>
                                             )}
                                         </div>
@@ -606,6 +871,32 @@ const getFacilityImages = (facility) => {
     }
     if (facility?.imageUrl) return [facility.imageUrl];
     return [];
+};
+
+const buildFacilityDraft = (centerProfile) => ({
+    ...emptyFacility,
+    address: centerProfile?.address || "",
+    latitude: formatOptionalNumber(centerProfile?.latitude),
+    longitude: formatOptionalNumber(centerProfile?.longitude),
+});
+
+const buildCenterForm = (centerProfile) => ({
+    name: centerProfile?.name || "",
+    description: centerProfile?.description || "",
+    phone: centerProfile?.phone || "",
+    address: centerProfile?.address || "",
+    latitude: formatOptionalNumber(centerProfile?.latitude),
+    longitude: formatOptionalNumber(centerProfile?.longitude),
+});
+
+const formatOptionalNumber = (value) => {
+    return value === null || value === undefined ? "" : String(value);
+};
+
+const toOptionalNumber = (value) => {
+    if (value === "" || value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
 };
 
 const formatDateTime = (value) => {

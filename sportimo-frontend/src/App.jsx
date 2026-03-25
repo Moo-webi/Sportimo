@@ -5,6 +5,8 @@ import Landing from "./pages/Landing";
 import FacilityList from "./pages/FacilityList";
 import ManageFacilities from "./pages/ManageFacilities";
 import AthleteDashboard from "./pages/AthleteDashboard";
+import AthleteProfilePage from "./pages/AthleteProfilePage";
+import MessagesPage from "./pages/MessagesPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -21,6 +23,22 @@ function App() {
                 element={
                     <ProtectedRoute allowedRoles={["ATHLETE"]}>
                         <AthleteDashboard />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/athletes/:athleteId"
+                element={
+                    <ProtectedRoute allowedRoles={["ATHLETE"]}>
+                        <AthleteProfilePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/messages"
+                element={
+                    <ProtectedRoute allowedRoles={["ATHLETE", "CENTER"]}>
+                        <MessagesPage />
                     </ProtectedRoute>
                 }
             />

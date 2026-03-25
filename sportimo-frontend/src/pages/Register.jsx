@@ -17,7 +17,9 @@ const Register = () => {
         name: '',
         address: '',
         phone: '',
-        description: ''
+        description: '',
+        latitude: '',
+        longitude: ''
     });
 
     const handleChange = (e) => {
@@ -28,7 +30,12 @@ const Register = () => {
         e.preventDefault();
         try {
             // Sends RegisterRequest DTO to your AuthService
-            await api.post('/auth/register', { ...formData, role });
+            await api.post('/auth/register', {
+                ...formData,
+                role,
+                latitude: toOptionalNumber(formData.latitude),
+                longitude: toOptionalNumber(formData.longitude),
+            });
             alert('Registration successful! Please login.');
         } catch (err) {
             alert(err.response?.data?.message || 'Registration failed');
@@ -207,6 +214,35 @@ const Register = () => {
                                         />
                                     </div>
 
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label className="mb-1 block text-sm font-semibold text-slate-700">Latitude</label>
+                                            <input
+                                                name="latitude"
+                                                type="number"
+                                                step="any"
+                                                placeholder="41.1579"
+                                                onChange={handleChange}
+                                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="mb-1 block text-sm font-semibold text-slate-700">Longitude</label>
+                                            <input
+                                                name="longitude"
+                                                type="number"
+                                                step="any"
+                                                placeholder="-8.6291"
+                                                onChange={handleChange}
+                                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <p className="text-xs text-slate-500">
+                                        Add coordinates if you want a more accurate Google Maps link. Address is still required.
+                                    </p>
+
                                     <div>
                                         <label className="mb-1 block text-sm font-semibold text-slate-700">Phone number</label>
                                         <input
@@ -257,3 +293,9 @@ const Register = () => {
 };
 
 export default Register;
+
+const toOptionalNumber = (value) => {
+    if (value === '' || value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+};

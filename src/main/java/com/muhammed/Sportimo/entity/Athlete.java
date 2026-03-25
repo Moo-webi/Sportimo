@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -33,4 +35,13 @@ public class Athlete {
 
     @OneToMany(mappedBy = "athlete")
     private List<Booking> bookings;
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "athlete_friends",
+            joinColumns = @JoinColumn(name = "athlete_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private Set<Athlete> friends = new HashSet<>();
 }

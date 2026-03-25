@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CenterBookingDto {
     private Long id;
+    private Long athleteId;
     private String facilityName;
     private String sportName;
     private String athleteName;

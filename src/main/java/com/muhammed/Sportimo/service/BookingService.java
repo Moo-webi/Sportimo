@@ -195,6 +195,7 @@ public class BookingService {
 
                     return new CenterBookingDto(
                             booking.getId(),
+                            booking.getAthlete() != null ? booking.getAthlete().getId() : null,
                             booking.getFacility() != null ? booking.getFacility().getName() : null,
                             booking.getFacility() != null && booking.getFacility().getSport() != null
                                     ? booking.getFacility().getSport().getName()
@@ -389,6 +390,7 @@ public class BookingService {
 
         return new CenterBookingDto(
                 booking.getId(),
+                booking.getAthlete() != null ? booking.getAthlete().getId() : null,
                 booking.getFacility() != null ? booking.getFacility().getName() : null,
                 booking.getFacility() != null && booking.getFacility().getSport() != null
                         ? booking.getFacility().getSport().getName()

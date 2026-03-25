@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const FacilityCard = ({ facility, centerNameById = {}, isCenter = false, isAthlete = false, onBook }) => {
+const FacilityCard = ({ facility, centerNameById = {}, isCenter = false, isAthlete = false, onBook, onMessageCenter }) => {
     const reviewCount = Number(facility.reviewCount || 0);
     const averageRating = typeof facility.averageRating === "number" ? facility.averageRating : null;
     const images = Array.isArray(facility.imageUrls) && facility.imageUrls.length > 0
@@ -91,6 +91,19 @@ const FacilityCard = ({ facility, centerNameById = {}, isCenter = false, isAthle
                         <p className="mt-1 text-sm font-semibold text-slate-700">
                             Center: {resolvedCenterName}
                         </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                            {facility.address || "Location not provided"}
+                        </p>
+                        {facility.googleMapsUrl && (
+                            <a
+                                href={facility.googleMapsUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-1 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+                            >
+                                View on Google Maps
+                            </a>
+                        )}
                         <p className="mt-2 text-sm font-semibold text-slate-700">
                             {reviewCount > 0 && averageRating != null
                                 ? `Rated ${averageRating.toFixed(1)}/5 (${reviewCount} review${reviewCount > 1 ? "s" : ""})`
@@ -102,7 +115,7 @@ const FacilityCard = ({ facility, centerNameById = {}, isCenter = false, isAthle
                     </span>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between pt-2">
+                <div className="mt-4 flex items-center justify-between gap-3 pt-2">
                     <div>
                         <span className="text-2xl font-extrabold text-emerald-700">${facility.pricePerHour}</span>
                         <span className="text-sm text-slate-500"> / hour</span>
@@ -119,12 +132,20 @@ const FacilityCard = ({ facility, centerNameById = {}, isCenter = false, isAthle
                             Edit
                         </Link>
                     ) : isAthlete ? (
-                        <button
-                            onClick={() => onBook?.(facility)}
-                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-                        >
-                            Book Now
-                        </button>
+                        <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                                onClick={() => onMessageCenter?.(facility)}
+                                className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-green-50"
+                            >
+                                Message Center
+                            </button>
+                            <button
+                                onClick={() => onBook?.(facility)}
+                                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                            >
+                                Book Now
+                            </button>
+                        </div>
                     ) : (
                         <Link
                             to="/login"

@@ -45,6 +45,9 @@ public class FacilityService {
         facility.setPricePerHour(request.getPricePerHour());
         facility.setSportsCenter(center);
         facility.setSport(sport);
+        facility.setAddress(firstNonBlank(request.getAddress(), center.getAddress()));
+        facility.setLatitude(request.getLatitude() != null ? request.getLatitude() : center.getLatitude());
+        facility.setLongitude(request.getLongitude() != null ? request.getLongitude() : center.getLongitude());
         facility.setSportsCenterName(facility.getSportsCenterName());
 
         return facilityRepository.save(facility);
@@ -72,6 +75,9 @@ public class FacilityService {
         facility.setImageUrl(normalizedImageUrls.isEmpty() ? null : normalizedImageUrls.get(0));
         facility.setPricePerHour(request.getPricePerHour());
         facility.setSport(sport);
+        facility.setAddress(firstNonBlank(request.getAddress(), facility.getSportsCenter().getAddress()));
+        facility.setLatitude(request.getLatitude() != null ? request.getLatitude() : facility.getSportsCenter().getLatitude());
+        facility.setLongitude(request.getLongitude() != null ? request.getLongitude() : facility.getSportsCenter().getLongitude());
 
         return facilityRepository.save(facility);
     }
@@ -187,5 +193,15 @@ public class FacilityService {
             normalized.add(fallbackImageUrl.trim());
         }
         return normalized;
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.trim().isEmpty()) {
+            return preferred.trim();
+        }
+        if (fallback != null && !fallback.trim().isEmpty()) {
+            return fallback.trim();
+        }
+        return null;
     }
 }

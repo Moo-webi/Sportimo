@@ -28,5 +28,6 @@ public class FriendRequest {
     @Enumerated(EnumType.STRING)
     private FriendRequestStatus status;
 
+    @Builder.Default
     private LocalDateTime sentAt = LocalDateTime.now();
 }

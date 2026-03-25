@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,9 @@ public class Facility {
     private List<String> imageUrls = new ArrayList<>();
     private Double pricePerHour;
     private Boolean isActive = true;
+    private String address;
+    private Double latitude;
+    private Double longitude;
 
     @Formula("(select avg(fr.rating) from facility_review fr where fr.facility_id = id)")
     private Double averageRating;
@@ -66,4 +71,16 @@ public class Facility {
     @OneToMany(mappedBy = "facility")
     @JsonIgnore // Prevent recursive serialization through bookings -> facility
     private List<Booking> bookings;
+
+    @Transient
+    public String getGoogleMapsUrl() {
+        if (latitude != null && longitude != null) {
+            return "https://www.google.com/maps?q=" + latitude + "," + longitude;
+        }
+        if (address != null && !address.isBlank()) {
+            return "https://www.google.com/maps/search/?api=1&query="
+                    + URLEncoder.encode(address, StandardCharsets.UTF_8);
+        }
+        return null;
+    }
 }

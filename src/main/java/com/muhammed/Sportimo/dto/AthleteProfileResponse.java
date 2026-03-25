@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class AthleteMeResponse {
+public class AthleteProfileResponse {
     private Long athleteId;
     private String email;
     private String firstName;
@@ -18,8 +18,9 @@ public class AthleteMeResponse {
     private Double height;
     private Double weight;
     private LocalDateTime joinedAt;
+    private boolean self;
+    private boolean friend;
+    private String friendshipStatus;
     private List<AthleteFriendDto> friends;
-    private List<FriendRequestDto> incomingFriendRequests;
-    private List<FriendRequestDto> outgoingFriendRequests;
-    private List<AthleteBookingDto> bookings;
+    private List<AthleteBookingDto> matches;
 }

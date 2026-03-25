@@ -35,3 +35,11 @@ export const clearAuth = () => {
     localStorage.removeItem("role");
     localStorage.removeItem("userName");
 };
+
+export const setStoredUserName = (value) => {
+    if (!value) {
+        localStorage.removeItem("userName");
+        return;
+    }
+    localStorage.setItem("userName", value);
+};

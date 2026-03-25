@@ -13,5 +13,8 @@ public class FacilityRequest {
     private List<String> imageUrls;
     private Double pricePerHour;
     private Long sportId;
+    private String address;
+    private Double latitude;
+    private Double longitude;
 
 }
