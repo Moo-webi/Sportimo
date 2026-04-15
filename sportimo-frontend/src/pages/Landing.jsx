@@ -205,7 +205,7 @@ export default function SportimoLanding() {
                         </h1>
 
                         <p className="mt-4 text-lg text-slate-600">
-                            Sportimo connects athletes and sports centersâ€”discover nearby
+                            Sportimo connects athletes and sports centers, discover nearby
                             facilities, reserve time slots, and build a sports community.
                         </p>
 

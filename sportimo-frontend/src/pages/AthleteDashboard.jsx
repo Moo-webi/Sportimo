@@ -74,6 +74,20 @@ const AthleteDashboard = () => {
         navigate("/login");
     };
 
+    const navLinks = useMemo(() => {
+        const base = [
+            { label: "Browse Facilities", to: "/facilities" },
+            { label: "Messages", to: "/messages" },
+        ];
+        if (authUser) {
+            if (authUser.role === "CENTER") base.unshift({ label: "Manage", to: "/manage" });
+            else if (authUser.role === "ATHLETE") base.unshift({ label: "Dashboard", to: "/dashboard" });
+        } else {
+            base.unshift({ label: "How it works", to: "#how" });
+        }
+        return base;
+    }, [authUser]);
+
     const handleCancelBooking = async (bookingId) => {
         const confirmed = window.confirm("Cancel this pending booking?");
         if (!confirmed) return;
@@ -196,24 +210,30 @@ const AthleteDashboard = () => {
                             {authUser.name}
                         </span>
                     )}
-                    <Link
-                        to="/facilities"
-                        className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                    >
-                        Browse Facilities
-                    </Link>
-                    <Link
-                        to="/messages"
-                        className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                    >
-                        Messages
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                    >
-                        Log out
-                    </button>
+                    {navLinks.map((l) => (
+                        l.to && l.to.startsWith("#") ? (
+                            <a key={l.to} href={l.to} className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">
+                                {l.label}
+                            </a>
+                        ) : (
+                            <Link key={l.to} to={l.to} className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">
+                                {l.label}
+                            </Link>
+                        )
+                    ))}
+                    {authUser ? (
+                        <button
+                            onClick={handleLogout}
+                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                        >
+                            Log out
+                        </button>
+                    ) : (
+                        <>
+                            <Link to="/login" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">Log in</Link>
+                            <Link to="/register" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">Get started</Link>
+                        </>
+                    )}
                 </div>
             </div>
 
