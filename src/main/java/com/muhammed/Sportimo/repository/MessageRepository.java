@@ -11,6 +11,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findBySenderIdOrRecipientIdOrderBySentAtDesc(Long senderId, Long recipientId);
 
+    void deleteBySenderIdOrRecipientId(Long senderId, Long recipientId);
+
     @Query("""
             select m from Message m
             where (m.sender.id = :firstUserId and m.recipient.id = :secondUserId)

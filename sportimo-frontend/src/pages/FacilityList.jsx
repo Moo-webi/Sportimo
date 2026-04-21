@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import FacilityCard from '../components/FacilityCard';
+import Navbar from '../components/Navbar';
 import { Link, useNavigate } from 'react-router-dom';
-import brandIcon from '../assets/icon.png';
 import { clearAuth, getAuthUser } from '../utils/auth';
 
 const FacilityList = () => {
@@ -187,43 +187,11 @@ const FacilityList = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-                <Link to="/" className="flex items-center gap-2">
-                    <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
-                    <div className="leading-tight">
-                        <div className="text-lg font-extrabold tracking-tight text-slate-900">Sportimo</div>
-                        <div className="-mt-1 text-xs text-slate-500">Book • Play • Track</div>
-                    </div>
-                </Link>
-                <div className="flex items-center gap-2">
-                    {authUser ? (
-                        <>
-                            <span className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                                 {authUser.name}
-                            </span>
-                            <Link
-                                to={authUser.role === "CENTER" ? "/manage" : authUser.role === "ATHLETE" ? "/dashboard" : "/facilities"}
-                                className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                            >
-                                Dashboard
-                            </Link>
-                            <button
-                                onClick={handleLogout}
-                                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                            >
-                                Log out
-                            </button>
-                        </>
-                    ) : (
-                        <Link
-                            to="/login"
-                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                        >
-                            Log in
-                        </Link>
-                    )}
-                </div>
-            </div>
+            {/* NAVBAR */}
+            <Navbar 
+                authUser={authUser}
+                onLogout={handleLogout}
+            />
 
             <div className="mx-auto max-w-6xl px-4 pb-10 pt-4">
                 <div className="mb-8 rounded-3xl border border-green-100 bg-white p-6 shadow-sm">

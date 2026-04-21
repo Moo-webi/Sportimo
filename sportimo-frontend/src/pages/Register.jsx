@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 import { Link } from 'react-router-dom';
-import brandIcon from '../assets/icon.png';
+import Navbar from '../components/Navbar';
+import { getAuthUser } from '../utils/auth';
 
 const Register = () => {
     // Role must match your Java Enum: Role.ATHLETE and Role.CENTER
@@ -44,22 +45,11 @@ const Register = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
-            {/* Top mini-nav */}
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-                <Link to="/" className="flex items-center gap-2">
-                    <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
-                    <div className="leading-tight">
-                        <div className="text-lg font-extrabold tracking-tight text-slate-900">Sportimo</div>
-                        <div className="-mt-1 text-xs text-slate-500">Book • Play • Track</div>
-                    </div>
-                </Link>
-                <Link
-                    to="/login"
-                    className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                >
-                    Log in
-                </Link>
-            </div>
+            {/* NAVBAR */}
+            <Navbar 
+                authUser={getAuthUser()}
+                onLogout={() => {}}
+            />
 
             <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-10 md:py-16">
                 <div className="relative w-full max-w-lg">

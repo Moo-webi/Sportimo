@@ -51,6 +51,8 @@ ORDER BY b.startTime DESC
 """)
     List<Booking> findAthleteRelatedBookingsOrderByStartTimeDesc(@Param("athleteId") Long athleteId);
 
+    List<Booking> findByAthleteId(Long athleteId);
+
     List<Booking> findByFacilitySportsCenterIdOrderByStartTimeDesc(Long sportsCenterId);
 
     Optional<Booking> findByIdAndFacilitySportsCenterId(Long id, Long sportsCenterId);

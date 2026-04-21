@@ -32,6 +32,7 @@ public class MessageService {
     private final AthleteRepository athleteRepository;
     private final SportsCenterRepository sportsCenterRepository;
     private final MessageRepository messageRepository;
+    private final MessageCryptoService messageCryptoService;
 
     public List<MessageConversationSummaryDto> getConversations(String email) {
         User currentUser = getCurrentUser(email);
@@ -47,7 +48,11 @@ public class MessageService {
             String key = counterpartDto.getType() + ":" + counterpartDto.getProfileId();
             summaries.putIfAbsent(
                     key,
-                    new MessageConversationSummaryDto(counterpartDto, message.getContent(), message.getSentAt())
+                    new MessageConversationSummaryDto(
+                            counterpartDto,
+                            messageCryptoService.decrypt(message.getContent()),
+                            message.getSentAt()
+                    )
             );
         }
 
@@ -96,7 +101,7 @@ public class MessageService {
         messageRepository.save(Message.builder()
                 .sender(sender)
                 .recipient(recipient)
-                .content(content)
+                .content(messageCryptoService.encrypt(content))
                 .build());
 
         return buildThread(sender, recipient);
@@ -108,7 +113,7 @@ public class MessageService {
                 messageRepository.findConversationBetweenUsers(currentUser.getId(), counterpart.getId()).stream()
                         .map(message -> new MessageDto(
                                 message.getId(),
-                                message.getContent(),
+                                messageCryptoService.decrypt(message.getContent()),
                                 message.getSentAt(),
                                 message.getSender().getId().equals(currentUser.getId())
                         ))

@@ -10,4 +10,5 @@ public interface FacilityReviewRepository extends JpaRepository<FacilityReview, 
     boolean existsByBookingId(Long bookingId);
     Optional<FacilityReview> findByBookingId(Long bookingId);
     List<FacilityReview> findByBookingIdIn(List<Long> bookingIds);
+    List<FacilityReview> findByAthleteId(Long athleteId);
 }

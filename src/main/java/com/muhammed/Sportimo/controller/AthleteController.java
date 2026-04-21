@@ -54,6 +54,12 @@ public class AthleteController {
         return ResponseEntity.ok(athleteService.updateCurrentAthleteProfile(authentication.getName(), request));
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(Authentication authentication) {
+        athleteService.deleteCurrentAthleteAccount(authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{athleteId}/friend-requests")
     public ResponseEntity<Void> sendFriendRequest(
             @PathVariable Long athleteId,
@@ -78,6 +84,15 @@ public class AthleteController {
             Authentication authentication
     ) {
         athleteService.declineFriendRequest(authentication.getName(), requestId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/friends/{friendId}")
+    public ResponseEntity<Void> removeFriend(
+            @PathVariable Long friendId,
+            Authentication authentication
+    ) {
+        athleteService.removeFriend(authentication.getName(), friendId);
         return ResponseEntity.noContent().build();
     }
 }

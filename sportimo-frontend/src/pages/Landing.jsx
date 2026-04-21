@@ -1,4 +1,6 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import brandIcon from "../assets/icon.png";
 import brandLogo from "../assets/logo (2).png";
 import { clearAuth, getAuthUser } from "../utils/auth";
@@ -12,20 +14,9 @@ import api from "../api/axios";
  * Drop this into: src/pages/Landing.jsx (or App.jsx)
  */
 export default function SportimoLanding() {
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const location = useLocation();
     const [authUser, setAuthUser] = useState(() => getAuthUser());
     const [landingData, setLandingData] = useState(null);
-
-    const navLinks = useMemo(
-        () => [
-            { label: "How it works", href: "#how" },
-            { label: "Features", href: "#features" },
-            { label: "For Centers", href: "#centers" },
-            { label: "Matches", href: "#matches" },
-            { label: "FAQ", href: "#faq" },
-        ],
-        []
-    );
 
     useEffect(() => {
         const fetchLandingData = async () => {
@@ -61,133 +52,10 @@ export default function SportimoLanding() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white text-slate-900">
             {/* NAVBAR */}
-            <header className="sticky top-0 z-50 border-b border-green-100 bg-white/80 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-                    <a href="/" className="flex items-center gap-2">
-                        <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
-                        <div className="leading-tight">
-                            <div className="text-lg font800 font-extrabold tracking-tight">
-                                Sportimo
-                            </div>
-                            <div className="text-xs text-slate-500 -mt-1">
-                                Book, Play and Track
-                            </div>
-                        </div>
-                    </a>
-
-                    <nav className="hidden items-center gap-6 md:flex">
-                        {navLinks.map((l) => (
-                            <a
-                                key={l.href}
-                                href={l.href}
-                                className="text-sm font-medium text-slate-600 hover:text-slate-900"
-                            >
-                                {l.label}
-                            </a>
-                        ))}
-                    </nav>
-
-                    <div className="hidden items-center gap-2 md:flex">
-                        {authUser ? (
-                            <>
-                                <span className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                                    {authUser.name}
-                                </span>
-                                <a
-                                    href={authUser.role === "CENTER" ? "/manage" : authUser.role === "ATHLETE" ? "/dashboard" : "/facilities"}
-                                    className="rounded-xl border border-green-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                                >
-                                    Dashboard
-                                </a>
-                                <button
-                                    onClick={handleLogout}
-                                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                                >
-                                    Log out
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <a
-                                    href="/login"
-                                    className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                                >
-                                    Log in
-                                </a>
-                                <a
-                                    href="/register"
-                                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                                >
-                                    Get started
-                                </a>
-                            </>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => setMobileOpen((v) => !v)}
-                        className="rounded-xl p-2 hover:bg-green-50 md:hidden"
-                        aria-label="Toggle menu"
-                    >
-                        <span className="block h-0.5 w-6 bg-slate-700" />
-                        <span className="mt-1 block h-0.5 w-6 bg-slate-700" />
-                        <span className="mt-1 block h-0.5 w-6 bg-slate-700" />
-                    </button>
-                </div>
-
-                {/* Mobile menu */}
-                {mobileOpen && (
-                    <div className="md:hidden border-t border-green-100 bg-white">
-                        <div className="mx-auto max-w-6xl px-4 py-3">
-                            <div className="flex flex-col gap-2">
-                                {navLinks.map((l) => (
-                                    <a
-                                        key={l.href}
-                                        href={l.href}
-                                        onClick={() => setMobileOpen(false)}
-                                        className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                                    >
-                                        {l.label}
-                                    </a>
-                                ))}
-                                <div className="mt-2 flex gap-2">
-                                    {authUser ? (
-                                        <>
-                                            <a
-                                                href={authUser.role === "CENTER" ? "/manage" : authUser.role === "ATHLETE" ? "/dashboard" : "/facilities"}
-                                                className="w-full rounded-xl border border-green-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-green-50"
-                                            >
-                                                Dashboard
-                                            </a>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full rounded-xl bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700"
-                                            >
-                                                Log out
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <a
-                                                href="/login"
-                                                className="w-full rounded-xl border border-green-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-green-50"
-                                            >
-                                                Log in
-                                            </a>
-                                            <a
-                                                href="/register"
-                                                className="w-full rounded-xl bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700"
-                                            >
-                                                Get started
-                                            </a>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </header>
+            <Navbar 
+                authUser={authUser} 
+                onLogout={handleLogout}
+            />
 
             {/* HERO */}
             <section className="mx-auto max-w-6xl px-4 pt-10 md:pt-16">

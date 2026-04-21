@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import api from "../api/axios";
-import brandIcon from "../assets/icon.png";
 import { clearAuth, getAuthUser, setStoredUserName } from "../utils/auth";
 
 const AthleteDashboard = () => {
@@ -24,6 +24,7 @@ const AthleteDashboard = () => {
     });
     const [profileSaving, setProfileSaving] = useState(false);
     const [socialActionLoading, setSocialActionLoading] = useState(false);
+    const [accountActionLoading, setAccountActionLoading] = useState(false);
     const [directorySearch, setDirectorySearch] = useState("");
 
     useEffect(() => {
@@ -194,48 +195,44 @@ const AthleteDashboard = () => {
         }
     };
 
+    const handleRemoveFriend = async (friendId) => {
+        if (!friendId) return;
+        const confirmed = window.confirm("Remove this athlete from your friends list?");
+        if (!confirmed) return;
+
+        setSocialActionLoading(true);
+        try {
+            await api.delete(`/athletes/friends/${friendId}`);
+            await refreshDashboard();
+        } catch (err) {
+            alert(extractApiError(err, "Failed to remove friend."));
+        } finally {
+            setSocialActionLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        const confirmed = window.confirm("Delete your account permanently? This will remove your profile, friendships, messages, reviews, and bookings.");
+        if (!confirmed) return;
+
+        setAccountActionLoading(true);
+        try {
+            await api.delete("/athletes/me");
+            clearAuth();
+            navigate("/");
+        } catch (err) {
+            alert(extractApiError(err, "Failed to delete account."));
+            setAccountActionLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-                <Link to="/" className="flex items-center gap-2">
-                    <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
-                    <div className="leading-tight">
-                        <div className="text-lg font-extrabold tracking-tight text-slate-900">Sportimo</div>
-                        <div className="-mt-1 text-xs text-slate-500">Book • Play • Track</div>
-                    </div>
-                </Link>
-                <div className="flex items-center gap-2">
-                    {authUser && (
-                        <span className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                            {authUser.name}
-                        </span>
-                    )}
-                    {navLinks.map((l) => (
-                        l.to && l.to.startsWith("#") ? (
-                            <a key={l.to} href={l.to} className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">
-                                {l.label}
-                            </a>
-                        ) : (
-                            <Link key={l.to} to={l.to} className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">
-                                {l.label}
-                            </Link>
-                        )
-                    ))}
-                    {authUser ? (
-                        <button
-                            onClick={handleLogout}
-                            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
-                        >
-                            Log out
-                        </button>
-                    ) : (
-                        <>
-                            <Link to="/login" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50">Log in</Link>
-                            <Link to="/register" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">Get started</Link>
-                        </>
-                    )}
-                </div>
-            </div>
+            {/* NAVBAR */}
+            <Navbar 
+                authUser={authUser}
+                onLogout={handleLogout}
+            />
 
             <div className="mx-auto max-w-6xl space-y-6 px-4 pb-10 pt-4">
                 <section className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
@@ -345,6 +342,20 @@ const AthleteDashboard = () => {
                                     {profileSaving ? "Saving..." : "Save Information"}
                                 </button>
                             </form>
+                            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4">
+                                <p className="text-sm font-semibold text-red-800">Danger Zone</p>
+                                <p className="mt-1 text-sm text-red-700">
+                                    Deleting your account removes your athlete profile, bookings, reviews, friendships, and messages.
+                                </p>
+                                <button
+                                    type="button"
+                                    disabled={accountActionLoading}
+                                    onClick={handleDeleteAccount}
+                                    className="mt-4 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:bg-red-300"
+                                >
+                                    {accountActionLoading ? "Deleting..." : "Delete My Account"}
+                                </button>
+                            </div>
                         </section>
 
                         <section className="space-y-6">
@@ -362,6 +373,13 @@ const AthleteDashboard = () => {
                                                         className="mt-3 rounded-xl border border-green-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-green-100"
                                                     >
                                                         View Profile
+                                                    </button>
+                                                    <button
+                                                        disabled={socialActionLoading}
+                                                        onClick={() => handleRemoveFriend(friend.athleteId)}
+                                                        className="mt-3 ml-2 rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                                    >
+                                                        Remove Friend
                                                     </button>
                                                 </div>
                                             ))}

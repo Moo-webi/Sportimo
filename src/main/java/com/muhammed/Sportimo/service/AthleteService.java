@@ -21,6 +21,7 @@ import com.muhammed.Sportimo.repository.AthleteRepository;
 import com.muhammed.Sportimo.repository.BookingRepository;
 import com.muhammed.Sportimo.repository.FacilityReviewRepository;
 import com.muhammed.Sportimo.repository.FriendRequestRepository;
+import com.muhammed.Sportimo.repository.MessageRepository;
 import com.muhammed.Sportimo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class AthleteService {
     private final BookingRepository bookingRepository;
     private final FacilityReviewRepository facilityReviewRepository;
     private final FriendRequestRepository friendRequestRepository;
+    private final MessageRepository messageRepository;
 
     public AthleteMeResponse getCurrentAthleteProfile(String email) {
         Athlete athlete = getCurrentAthlete(email);
@@ -178,6 +180,44 @@ public class AthleteService {
     }
 
     @Transactional
+    public void deleteCurrentAthleteAccount(String email) {
+        Athlete athlete = getCurrentAthlete(email);
+        User user = athlete.getUser();
+
+        for (Athlete friend : List.copyOf(athlete.getFriends())) {
+            friend.getFriends().removeIf(existing -> existing.getId().equals(athlete.getId()));
+            athleteRepository.save(friend);
+        }
+        athlete.getFriends().clear();
+
+        friendRequestRepository.deleteBySenderIdOrReceiverId(athlete.getId(), athlete.getId());
+
+        List<FacilityReview> athleteReviews = facilityReviewRepository.findByAthleteId(athlete.getId());
+        if (!athleteReviews.isEmpty()) {
+            facilityReviewRepository.deleteAll(athleteReviews);
+        }
+
+        List<Booking> relatedBookings = bookingRepository.findAthleteRelatedBookingsOrderByStartTimeDesc(athlete.getId());
+        for (Booking booking : relatedBookings) {
+            boolean ownsBooking = booking.getAthlete() != null && booking.getAthlete().getId().equals(athlete.getId());
+            if (ownsBooking) {
+                facilityReviewRepository.findByBookingId(booking.getId()).ifPresent(facilityReviewRepository::delete);
+                bookingRepository.delete(booking);
+                continue;
+            }
+
+            if (booking.getJoinedAthletes().removeIf(joinedAthlete -> joinedAthlete.getId().equals(athlete.getId()))) {
+                bookingRepository.save(booking);
+            }
+        }
+
+        messageRepository.deleteBySenderIdOrRecipientId(user.getId(), user.getId());
+
+        athleteRepository.delete(athlete);
+        userRepository.delete(user);
+    }
+
+    @Transactional
     public void sendFriendRequest(String email, Long receiverId) {
         Athlete sender = getCurrentAthlete(email);
         Athlete receiver = athleteRepository.findById(receiverId)
@@ -228,6 +268,23 @@ public class AthleteService {
         FriendRequest request = getPendingRequestForReceiver(receiver, requestId);
         request.setStatus(FriendRequestStatus.DECLINED);
         friendRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void removeFriend(String email, Long friendId) {
+        Athlete athlete = getCurrentAthlete(email);
+        Athlete friend = athleteRepository.findById(friendId)
+                .orElseThrow(() -> new RuntimeException("Athlete not found"));
+
+        boolean removedFromCurrent = athlete.getFriends().removeIf(existing -> existing.getId().equals(friendId));
+        boolean removedFromFriend = friend.getFriends().removeIf(existing -> existing.getId().equals(athlete.getId()));
+
+        if (!removedFromCurrent && !removedFromFriend) {
+            throw new RuntimeException("This athlete is not in your friends list");
+        }
+
+        athleteRepository.save(athlete);
+        athleteRepository.save(friend);
     }
 
     private void addFriendship(Athlete left, Athlete right) {

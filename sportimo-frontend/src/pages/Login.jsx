@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import api from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
-import brandIcon from "../assets/icon.png";
-import { formatUserName, parseJwtPayload } from "../utils/auth";
+import Navbar from "../components/Navbar";
+import { formatUserName, parseJwtPayload, getAuthUser } from "../utils/auth";
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -52,27 +52,11 @@ const Login = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
-            {/* top */}
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-                <Link to="/" className="flex items-center gap-2">
-                    <img src={brandIcon} alt="Sportimo icon" className="h-9 w-9 rounded-xl object-cover shadow-sm" />
-                    <div className="leading-tight">
-                        <div className="text-lg font-extrabold tracking-tight text-slate-900">
-                            Sportimo
-                        </div>
-                        <div className="-mt-1 text-xs text-slate-500">Book • Play • Track</div>
-                    </div>
-                </Link>
-
-                <Link
-                    to="/register"
-                    className="rounded-xl border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50"
-                >
-                    Create account
-                </Link>
-            </div>
-
-            {/* center */}
+            {/* NAVBAR */}
+            <Navbar 
+                authUser={getAuthUser()}
+                onLogout={() => {}}
+            />
             <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-10 md:py-16">
                 <div className="relative w-full max-w-md">
                     <div className="absolute -inset-6 -z-10 rounded-[32px] bg-gradient-to-br from-green-100 via-white to-emerald-100 blur-2xl" />
