@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getAuthUser } from '../utils/auth';
 
 const Register = () => {
     // Role must match your Java Enum: Role.ATHLETE and Role.CENTER
     const [role, setRole] = useState('ATHLETE');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -29,6 +31,7 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             // Sends RegisterRequest DTO to your AuthService
             await api.post('/auth/register', {
@@ -37,9 +40,9 @@ const Register = () => {
                 latitude: toOptionalNumber(formData.latitude),
                 longitude: toOptionalNumber(formData.longitude),
             });
-            alert('Registration successful! Please login.');
+            navigate('/login');
         } catch (err) {
-            alert(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || 'Registration failed');
         }
     };
 
@@ -65,7 +68,11 @@ const Register = () => {
                             <p className="mt-2 text-sm text-slate-600">Pick your role, then fill in the details.</p>
                         </div>
 
-                        {/* Role Toggle - Logic matches AuthService.java */}
+                        {error && (
+                            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+                                {error}
+                            </div>
+                        )}
                         <div className="mt-6 flex overflow-hidden rounded-2xl border border-green-200 bg-green-50">
                             <button
                                 type="button"
@@ -125,7 +132,7 @@ const Register = () => {
                                             <label className="mb-1 block text-sm font-semibold text-slate-700">First name</label>
                                             <input
                                                 name="firstName"
-                                                placeholder="Muhammed"
+                                                placeholder="First name"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                                 required
@@ -135,7 +142,7 @@ const Register = () => {
                                             <label className="mb-1 block text-sm font-semibold text-slate-700">Last name</label>
                                             <input
                                                 name="lastName"
-                                                placeholder="Mabrouk"
+                                                placeholder="Last name"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                                 required
@@ -161,7 +168,7 @@ const Register = () => {
                                                 name="height"
                                                 type="number"
                                                 step="0.1"
-                                                placeholder="184"
+                                                placeholder="00"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                             />
@@ -172,7 +179,7 @@ const Register = () => {
                                                 name="weight"
                                                 type="number"
                                                 step="0.1"
-                                                placeholder="90"
+                                                placeholder="00"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                             />
@@ -186,7 +193,7 @@ const Register = () => {
                                         <label className="mb-1 block text-sm font-semibold text-slate-700">Sports center name</label>
                                         <input
                                             name="name"
-                                            placeholder="City Sports Center"
+                                            placeholder="Sports center name"
                                             onChange={handleChange}
                                             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                             required
@@ -211,7 +218,7 @@ const Register = () => {
                                                 name="latitude"
                                                 type="number"
                                                 step="any"
-                                                placeholder="41.1579"
+                                                placeholder="00.000"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                             />
@@ -222,7 +229,7 @@ const Register = () => {
                                                 name="longitude"
                                                 type="number"
                                                 step="any"
-                                                placeholder="-8.6291"
+                                                placeholder="00.000"
                                                 onChange={handleChange}
                                                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-emerald-400"
                                             />

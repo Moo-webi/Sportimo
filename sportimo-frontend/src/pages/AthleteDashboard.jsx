@@ -21,6 +21,7 @@ const AthleteDashboard = () => {
         birthDate: "",
         height: "",
         weight: "",
+        email: "",
     });
     const [profileSaving, setProfileSaving] = useState(false);
     const [socialActionLoading, setSocialActionLoading] = useState(false);
@@ -267,10 +268,7 @@ const AthleteDashboard = () => {
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Confirmed</p>
                                 <p className="mt-2 text-3xl font-extrabold text-emerald-700">{confirmedBookings}</p>
                             </div>
-                            <div className="rounded-2xl border border-green-100 bg-white p-5 shadow-sm">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Friends</p>
-                                <p className="mt-2 text-3xl font-extrabold text-emerald-700">{friendsCount}</p>
-                            </div>
+
                             <div className="rounded-2xl border border-green-100 bg-white p-5 shadow-sm">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Incoming Requests</p>
                                 <p className="mt-2 text-3xl font-extrabold text-emerald-700">{incomingRequestsCount}</p>
@@ -280,9 +278,13 @@ const AthleteDashboard = () => {
                                 <p className="mt-2 text-3xl font-extrabold text-emerald-700">{outgoingRequestsCount}</p>
                             </div>
                             <div className="rounded-2xl border border-green-100 bg-white p-5 shadow-sm">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</p>
-                                <p className="mt-2 truncate text-sm font-bold text-slate-800">{profile?.email || "-"}</p>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Friends</p>
+                                <p className="mt-2 text-3xl font-extrabold text-emerald-700">{friendsCount}</p>
                             </div>
+                            {/*<div className="rounded-2xl border border-green-100 bg-white p-5 shadow-sm">*/}
+                            {/*    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</p>*/}
+                            {/*    <p className="mt-2 truncate text-sm font-bold text-slate-800">{profile?.email || "-"}</p>*/}
+                            {/*</div>*/}
                         </section>
 
                         <section className="rounded-3xl border border-green-100 bg-white p-6 shadow-sm">
@@ -294,6 +296,8 @@ const AthleteDashboard = () => {
                                 <InfoItem label="Height" value={profile?.height ? `${profile.height} cm` : "-"} />
                                 <InfoItem label="Weight" value={profile?.weight ? `${profile.weight} kg` : "-"} />
                                 <InfoItem label="Joined" value={formatDateTime(profile?.joinedAt)} />
+                                <InfoItem label="Email" value={profile?.email ? `${profile.email}`: "-"} />
+                                
                             </div>
                             <form onSubmit={handleSaveProfile} className="mt-6 grid gap-4 md:grid-cols-2">
                                 <input
@@ -736,6 +740,7 @@ const buildAthleteProfileForm = (profile) => ({
     birthDate: profile?.birthDate || "",
     height: profile?.height ?? "",
     weight: profile?.weight ?? "",
+    // email: profile?.email ?? "",
 });
 
 const toOptionalNumber = (value) => {

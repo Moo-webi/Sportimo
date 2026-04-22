@@ -36,6 +36,19 @@ const Login = () => {
             }
             localStorage.setItem("userName", userName);
 
+            // Fetch user's first name based on role
+            try {
+                if (role === "CENTER") {
+                    const centerRes = await api.get("/centers/me");
+                    localStorage.setItem("userFirstName", centerRes.data.name);
+                } else if (role === "ATHLETE") {
+                    const athleteRes = await api.get("/athletes/me");
+                    localStorage.setItem("userFirstName", athleteRes.data.firstName);
+                }
+            } catch (err) {
+                console.error("Failed to fetch user first name:", err);
+            }
+
             if (role === "CENTER") {
                 navigate("/manage");
             } else if (role === "ATHLETE") {

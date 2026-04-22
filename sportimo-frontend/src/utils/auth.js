@@ -23,6 +23,14 @@ export const getAuthUser = () => {
 
     const payload = parseJwtPayload(token);
     const role = localStorage.getItem("role") || payload?.role || "";
+    
+    // Try to get the stored first name first
+    const storedFirstName = localStorage.getItem("userFirstName");
+    if (storedFirstName) {
+        return { name: storedFirstName, role };
+    }
+    
+    // Fallback to formatted email/username
     const storedName = localStorage.getItem("userName");
     const subjectName = payload?.sub || payload?.subject || "";
     const name = formatUserName(storedName || subjectName);
@@ -34,6 +42,7 @@ export const clearAuth = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userName");
+    localStorage.removeItem("userFirstName");
 };
 
 export const setStoredUserName = (value) => {
